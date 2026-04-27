@@ -160,6 +160,18 @@ int main(void) {
         delayMs(LOOP_DELAY_MS);
     }
 
+    // SIMPLE TESTING, REPLACE WHILE LOOP
+
+    // while (1) {
+    //     updateTiltEstimate();
+    //     tiltAngleDeg = getTiltAngleDeg();
+
+    //     // LED-only testing: always update indicators, never use buzzer
+    //     updateIndicators(tiltAngleDeg, 0);
+
+    //     delayMs(LOOP_DELAY_MS);
+    // }
+
     return 0;
 }
 
