@@ -28,18 +28,12 @@
 #include "switch.h"
 #include "timer.h"
 
-// -------------------------------------------------
-// Main alarm state machine
-// -------------------------------------------------
 typedef enum {
     DISPLAY_LEVEL,
     DISPLAY_WARNING,
     ALARM_SILENCED
 } MainState;
 
-// -------------------------------------------------
-// Switch debounce state machine
-// -------------------------------------------------
 typedef enum {
     SWITCH_WAIT,
     SWITCH_DEBOUNCE_PRESS,
@@ -80,9 +74,6 @@ int main(void) {
             absTiltDeg = tiltAngleDeg;
         }
 
-        // -----------------------------------------
-        // Main alarm state machine
-        // -----------------------------------------
         switch (mainState) {
             case DISPLAY_LEVEL:
                 if (absTiltDeg >= WARNING_THRESHOLD_DEG) {
@@ -117,19 +108,12 @@ int main(void) {
                 break;
         }
 
-        // -----------------------------------------
-        // Output behavior
-        // -----------------------------------------
         if (mainState == DISPLAY_WARNING) {
             updateIndicators(tiltAngleDeg, 1);
         } else {
             updateIndicators(tiltAngleDeg, 0);
         }
 
-        // -----------------------------------------
-        // Switch debounce state machine
-        // Button silences alarm
-        // -----------------------------------------
         switch (switchState) {
             case SWITCH_WAIT:
                 if (switchFlag) {
@@ -179,7 +163,6 @@ int main(void) {
     return 0;
 }
 
-// External interrupt on Uno D2 = INT0
 ISR(INT0_vect) {
     switchFlag = 1;
 }

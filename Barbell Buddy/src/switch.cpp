@@ -23,7 +23,6 @@ void disableSwitchInterrupt(void) {
 }
 
 unsigned char switchPressed(void) {
-    // Active low because of pull-up
     return ((BUTTON_PINREG & (1 << BUTTON_BIT)) == 0);
 }
 

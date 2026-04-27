@@ -10,94 +10,72 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// Latest filtered tilt estimate
 static float tiltAngleDeg = 0.0f;
-
-// Calibration values
 static float accelOffsetDeg = 0.0f;
-static float gyroYBiasDegPerSec = 0.0f;
 
 // -------------------------------------------------
 // Private helper functions
 // -------------------------------------------------
-static void writeMPURegister(uint8_t reg, uint8_t value) {
-    StartI2C_Trans(MPU_ADDR);
+static void writeADXLRegister(uint8_t reg, uint8_t value) {
+    StartI2C_Trans(ADXL345_ADDR);
     Write(reg);
     Write(value);
     StopI2C_Trans();
 }
 
-static int16_t readWord(uint8_t regHigh, uint8_t regLow) {
-    uint8_t highByte = Read_from(MPU_ADDR, regHigh);
-    uint8_t lowByte  = Read_from(MPU_ADDR, regLow);
+static int16_t readWordLittleEndian(uint8_t regLow, uint8_t regHigh) {
+    uint8_t lowByte  = Read_from(ADXL345_ADDR, regLow);
+    uint8_t highByte = Read_from(ADXL345_ADDR, regHigh);
 
     return (int16_t)(((uint16_t)highByte << 8) | lowByte);
 }
 
-static float computeAccelAngleDeg(int16_t ax, int16_t az) {
-    // MPU-6050 default accel scale = +/-2g => 16384 LSB/g
-    float axG = (float)ax / 16384.0f;
-    float azG = (float)az / 16384.0f;
-
-    // Mounting assumption:
-    // X axis roughly along the "tilt direction"
-    // Z axis roughly upward when bar is level
-    return (float)(atan2(axG, azG) * 180.0 / M_PI);
+static float computeAccelTiltDeg(int16_t yRaw, int16_t zRaw) {
+    // For ADXL345, a simple first-pass tilt estimate is:
+    // roll = atan2(Y, Z)
+    return (float)(atan2((float)yRaw, (float)zRaw) * 180.0 / M_PI);
 }
 
 // -------------------------------------------------
-// Public IMU functions
+// Public functions
 // -------------------------------------------------
 void initIMU(void) {
-    // Wake up MPU-6050
-    writeMPURegister(PWR_MGMT_1, 0x00);
+    // Put ADXL345 into measurement mode
+    writeADXLRegister(REG_POWER_CTL, 0x08);
+
+    // Optional but recommended:
+    // 100 Hz output data rate
+    writeADXLRegister(REG_BW_RATE, 0x0A);
+
+    // Optional but recommended:
+    // full-resolution, +/-2g range
+    writeADXLRegister(REG_DATA_FORMAT, 0x08);
+
     delayMs(100);
 }
 
 void calibrateIMU(void) {
     float angleSum = 0.0f;
-    float gyroSum = 0.0f;
     int i;
 
     for (i = 0; i < CALIBRATION_SAMPLES; i++) {
-        int16_t ax = readWord(ACCEL_XOUT_H, ACCEL_XOUT_L);
-        int16_t az = readWord(ACCEL_ZOUT_H, ACCEL_ZOUT_L);
-        int16_t gy = readWord(GYRO_YOUT_H, GYRO_YOUT_L);
+        int16_t yRaw = readWordLittleEndian(REG_DATAY0, REG_DATAY1);
+        int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
 
-        angleSum += computeAccelAngleDeg(ax, az);
-
-        // MPU-6050 default gyro scale = +/-250 deg/s => 131 LSB/(deg/s)
-        gyroSum += ((float)gy / 131.0f);
+        angleSum += computeAccelTiltDeg(yRaw, zRaw);
 
         delayMs(CALIBRATION_DELAY_MS);
     }
 
     accelOffsetDeg = angleSum / (float)CALIBRATION_SAMPLES;
-    gyroYBiasDegPerSec = gyroSum / (float)CALIBRATION_SAMPLES;
-
-    // Current position becomes 0 deg
     tiltAngleDeg = 0.0f;
 }
 
 void updateTiltEstimate(void) {
-    int16_t ax = readWord(ACCEL_XOUT_H, ACCEL_XOUT_L);
-    int16_t az = readWord(ACCEL_ZOUT_H, ACCEL_ZOUT_L);
-    int16_t gy = readWord(GYRO_YOUT_H, GYRO_YOUT_L);
+    int16_t yRaw = readWordLittleEndian(REG_DATAY0, REG_DATAY1);
+    int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
 
-    float accelAngleDeg;
-    float gyroRateDegPerSec;
-    float dt;
-    float gyroPredictedAngleDeg;
-
-    accelAngleDeg = computeAccelAngleDeg(ax, az) - accelOffsetDeg;
-    gyroRateDegPerSec = ((float)gy / 131.0f) - gyroYBiasDegPerSec;
-
-    dt = ((float)LOOP_DELAY_MS) / 1000.0f;
-    gyroPredictedAngleDeg = tiltAngleDeg + (gyroRateDegPerSec * dt);
-
-    tiltAngleDeg =
-        (COMPLEMENTARY_ALPHA * gyroPredictedAngleDeg) +
-        ((1.0f - COMPLEMENTARY_ALPHA) * accelAngleDeg);
+    tiltAngleDeg = computeAccelTiltDeg(yRaw, zRaw) - accelOffsetDeg;
 }
 
 float getTiltAngleDeg(void) {
