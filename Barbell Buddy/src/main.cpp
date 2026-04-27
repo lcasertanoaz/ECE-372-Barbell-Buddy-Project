@@ -27,6 +27,8 @@
 #include "indicators.h"
 #include "switch.h"
 #include "timer.h"
+#include "uart.h"
+#include "reps.h"
 
 typedef enum {
     DISPLAY_LEVEL,
@@ -51,7 +53,6 @@ unsigned char warningCounter = 0;
 
 int main(void) {
     float tiltAngleDeg;
-    float absTiltDeg;
 
     initTimer1();
     initIndicators();
@@ -61,116 +62,134 @@ int main(void) {
     initIMU();
     calibrateIMU();
 
+    initUART();
+    initRepCounter();
+    uartPrint("Barbell Buddy Starting...\r\n");
+
     sei();
     enableSwitchInterrupt();
-
-    while (1) {
-        updateTiltEstimate();
-        tiltAngleDeg = getTiltAngleDeg();
-
-        if (tiltAngleDeg < 0.0f) {
-            absTiltDeg = -tiltAngleDeg;
-        } else {
-            absTiltDeg = tiltAngleDeg;
-        }
-
-        switch (mainState) {
-            case DISPLAY_LEVEL:
-                if (absTiltDeg >= WARNING_THRESHOLD_DEG) {
-                    warningCounter++;
-
-                    if (warningCounter >= WARNING_LOOP_COUNT) {
-                        alarmLatched = 1;
-                        mainState = DISPLAY_WARNING;
-                        warningCounter = 0;
-                    }
-                } else {
-                    warningCounter = 0;
-                }
-                break;
-
-            case DISPLAY_WARNING:
-                if (alarmLatched == 0) {
-                    mainState = ALARM_SILENCED;
-                }
-                break;
-
-            case ALARM_SILENCED:
-                if (absTiltDeg <= LEVEL_WINDOW_DEG) {
-                    mainState = DISPLAY_LEVEL;
-                    warningCounter = 0;
-                }
-                break;
-
-            default:
-                mainState = DISPLAY_LEVEL;
-                warningCounter = 0;
-                break;
-        }
-
-        if (mainState == DISPLAY_WARNING) {
-            updateIndicators(tiltAngleDeg, 1);
-        } else {
-            updateIndicators(tiltAngleDeg, 0);
-        }
-
-        switch (switchState) {
-            case SWITCH_WAIT:
-                if (switchFlag) {
-                    switchFlag = 0;
-                    switchState = SWITCH_DEBOUNCE_PRESS;
-                }
-                break;
-
-            case SWITCH_DEBOUNCE_PRESS:
-                delayMs(DEBOUNCE_MS);
-
-                if (switchPressed()) {
-                    alarmLatched = 0;
-                    disableSwitchInterrupt();
-                    switchState = SWITCH_WAIT_RELEASE;
-                } else {
-                    switchState = SWITCH_WAIT;
-                }
-                break;
-
-            case SWITCH_WAIT_RELEASE:
-                if (!switchPressed()) {
-                    switchState = SWITCH_DEBOUNCE_RELEASE;
-                }
-                break;
-
-            case SWITCH_DEBOUNCE_RELEASE:
-                delayMs(DEBOUNCE_MS);
-
-                if (!switchPressed()) {
-                    clearSwitchInterruptFlag();
-                    enableSwitchInterrupt();
-                    switchState = SWITCH_WAIT;
-                } else {
-                    switchState = SWITCH_WAIT_RELEASE;
-                }
-                break;
-
-            default:
-                switchState = SWITCH_WAIT;
-                break;
-        }
-
-        delayMs(LOOP_DELAY_MS);
-    }
-
-    // SIMPLE TESTING, REPLACE WHILE LOOP
 
     // while (1) {
     //     updateTiltEstimate();
     //     tiltAngleDeg = getTiltAngleDeg();
 
-    //     // LED-only testing: always update indicators, never use buzzer
-    //     updateIndicators(tiltAngleDeg, 0);
+    //     if (tiltAngleDeg < 0.0f) {
+    //         absTiltDeg = -tiltAngleDeg;
+    //     } else {
+    //         absTiltDeg = tiltAngleDeg;
+    //     }
+
+    //     switch (mainState) {
+    //         case DISPLAY_LEVEL:
+    //             if (absTiltDeg >= WARNING_THRESHOLD_DEG) {
+    //                 warningCounter++;
+
+    //                 if (warningCounter >= WARNING_LOOP_COUNT) {
+    //                     alarmLatched = 1;
+    //                     mainState = DISPLAY_WARNING;
+    //                     warningCounter = 0;
+    //                 }
+    //             } else {
+    //                 warningCounter = 0;
+    //             }
+    //             break;
+
+    //         case DISPLAY_WARNING:
+    //             if (alarmLatched == 0) {
+    //                 mainState = ALARM_SILENCED;
+    //             }
+    //             break;
+
+    //         case ALARM_SILENCED:
+    //             if (absTiltDeg <= LEVEL_WINDOW_DEG) {
+    //                 mainState = DISPLAY_LEVEL;
+    //                 warningCounter = 0;
+    //             }
+    //             break;
+
+    //         default:
+    //             mainState = DISPLAY_LEVEL;
+    //             warningCounter = 0;
+    //             break;
+    //     }
+
+    //     if (mainState == DISPLAY_WARNING) {
+    //         updateIndicators(tiltAngleDeg, 1);
+    //     } else {
+    //         updateIndicators(tiltAngleDeg, 0);
+    //     }
+
+    //     switch (switchState) {
+    //         case SWITCH_WAIT:
+    //             if (switchFlag) {
+    //                 switchFlag = 0;
+    //                 switchState = SWITCH_DEBOUNCE_PRESS;
+    //             }
+    //             break;
+
+    //         case SWITCH_DEBOUNCE_PRESS:
+    //             delayMs(DEBOUNCE_MS);
+
+    //             if (switchPressed()) {
+    //                 alarmLatched = 0;
+    //                 disableSwitchInterrupt();
+    //                 switchState = SWITCH_WAIT_RELEASE;
+    //             } else {
+    //                 switchState = SWITCH_WAIT;
+    //             }
+    //             break;
+
+    //         case SWITCH_WAIT_RELEASE:
+    //             if (!switchPressed()) {
+    //                 switchState = SWITCH_DEBOUNCE_RELEASE;
+    //             }
+    //             break;
+
+    //         case SWITCH_DEBOUNCE_RELEASE:
+    //             delayMs(DEBOUNCE_MS);
+
+    //             if (!switchPressed()) {
+    //                 clearSwitchInterruptFlag();
+    //                 enableSwitchInterrupt();
+    //                 switchState = SWITCH_WAIT;
+    //             } else {
+    //                 switchState = SWITCH_WAIT_RELEASE;
+    //             }
+    //             break;
+
+    //         default:
+    //             switchState = SWITCH_WAIT;
+    //             break;
+    //     }
 
     //     delayMs(LOOP_DELAY_MS);
     // }
+
+    // SIMPLE TESTING, REPLACE WHILE LOOP
+
+    int debugLoopCounter = 0;
+
+    while (1) {
+        updateTiltEstimate();
+        tiltAngleDeg = getTiltAngleDeg();
+
+        // LED-only testing: always update indicators, never use buzzer
+        updateIndicators(tiltAngleDeg, 0);
+
+        float zG = getZAccelG();
+        updateReps(zG);
+
+        // Print the Z-acceleration every 50 loops (~500ms)
+        debugLoopCounter++;
+        if (debugLoopCounter >= 50) {
+            uartPrint("Z-Accel (x100): ");
+            uartPrintInt((int)(zG * 100));
+            uartPrint("\r\n");
+            debugLoopCounter = 0;
+        }
+
+        delayMs(LOOP_DELAY_MS);
+    }
 
     return 0;
 }

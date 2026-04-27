@@ -85,3 +85,9 @@ void updateTiltEstimate(void) {
 float getTiltAngleDeg(void) {
     return tiltAngleDeg;
 }
+
+float getZAccelG(void) {
+    int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
+    // ADXL345 full resolution mode scale factor is ~3.9mg per LSB
+    return (float)zRaw * 0.0039f;
+}

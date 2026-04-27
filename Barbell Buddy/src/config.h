@@ -67,7 +67,7 @@
 // -------------------------------------------------
 // Tilt / warning settings
 // -------------------------------------------------
-#define LEVEL_WINDOW_DEG      2.0f
+#define LEVEL_WINDOW_DEG      10.0f
 #define WARNING_THRESHOLD_DEG 5.0f
 #define WARNING_LOOP_COUNT    10
 
