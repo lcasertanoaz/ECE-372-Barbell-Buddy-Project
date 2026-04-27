@@ -75,7 +75,11 @@ void updateTiltEstimate(void) {
     int16_t yRaw = readWordLittleEndian(REG_DATAY0, REG_DATAY1);
     int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
 
-    tiltAngleDeg = computeAccelTiltDeg(yRaw, zRaw) - accelOffsetDeg;
+    float rawTiltDeg;
+    rawTiltDeg = computeAccelTiltDeg(yRaw, zRaw) - accelOffsetDeg;
+
+    // Simple smoothing to reduce flicker
+    tiltAngleDeg = 0.85f * tiltAngleDeg + 0.15f * rawTiltDeg;
 }
 
 float getTiltAngleDeg(void) {
