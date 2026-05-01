@@ -70,4 +70,38 @@
 #define WARNING_THRESHOLD_DEG 12.0f
 #define WARNING_LOOP_COUNT    10
 
+// -------------------------------------------------
+// LCD1602 pin assignments (4-bit mode, ATmega2560)
+// RS -> PC0  (Mega D37)
+// E  -> PC1  (Mega D36)
+// D4 -> PC2  (Mega D35)
+// D5 -> PC3  (Mega D34)
+// D6 -> PC4  (Mega D33)
+// D7 -> PC5  (Mega D32)
+// RW is tied directly to GND, so no MCU pin is needed.
+// -------------------------------------------------
+#define LCD_RS_DDR     DDRC
+#define LCD_RS_PORT    PORTC
+#define LCD_RS_BIT     PC0
+
+#define LCD_E_DDR      DDRC
+#define LCD_E_PORT     PORTC
+#define LCD_E_BIT      PC1
+
+#define LCD_D4_DDR     DDRC
+#define LCD_D4_PORT    PORTC
+#define LCD_D4_BIT     PC2
+
+#define LCD_D5_DDR     DDRC
+#define LCD_D5_PORT    PORTC
+#define LCD_D5_BIT     PC3
+
+#define LCD_D6_DDR     DDRC
+#define LCD_D6_PORT    PORTC
+#define LCD_D6_BIT     PC4
+
+#define LCD_D7_DDR     DDRC
+#define LCD_D7_PORT    PORTC
+#define LCD_D7_BIT     PC5
+
 #endif
