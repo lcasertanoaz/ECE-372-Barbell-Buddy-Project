@@ -194,6 +194,6 @@ int main(void) {
     return 0;
 }
 
-ISR(INT0_vect) {
+ISR(INT4_vect) {
     switchFlag = 1;
 }
