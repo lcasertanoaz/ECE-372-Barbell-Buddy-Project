@@ -56,7 +56,7 @@ int main(void) {
 
     initTimer1();
     initIndicators();
-    initSwitchINT0();
+    initSwitchINT4();
 
     InitI2C();
     initIMU();
