@@ -29,6 +29,7 @@
 #include "timer.h"
 #include "uart.h"
 #include "reps.h"
+#include "lcd.h"
 
 typedef enum {
     DISPLAY_LEVEL,
@@ -65,6 +66,13 @@ int main(void) {
     initUART();
     initRepCounter();
     uartPrint("Barbell Buddy Starting...\r\n");
+
+    initLCD();
+    lcdClear();
+    lcdSetCursor(0, 0);
+    lcdPrint("Barbell Buddy");
+    lcdSetCursor(1, 0);
+    lcdPrint("Reps: 0");
 
     sei();
     enableSwitchInterrupt();
@@ -168,6 +176,7 @@ int main(void) {
     // SIMPLE TESTING, REPLACE WHILE LOOP
 
     int debugLoopCounter = 0;
+    int lastDisplayedRep = -1;
 
     while (1) {
         updateTiltEstimate();
@@ -178,6 +187,16 @@ int main(void) {
 
         float zG = getZAccelG();
         updateReps(zG);
+
+        int currentReps = getRepCount();
+
+        if (currentReps != lastDisplayedRep) {
+            lcdSetCursor(1, 0);
+            lcdPrint("Reps:      ");
+            lcdSetCursor(1, 6);
+            lcdPrintInt(currentReps);
+            lastDisplayedRep = currentReps;
+        }
 
         // Print the Z-acceleration every 50 loops (~500ms)
         debugLoopCounter++;
