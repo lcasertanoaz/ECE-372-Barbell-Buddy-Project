@@ -2,24 +2,24 @@
 #include "config.h"
 #include <avr/io.h>
 
-void initSwitchINT0(void) {
-    // D2 / PD2 input
+void initSwitchINT4(void) {
+    // D2 / PE4 input
     BUTTON_DDR &= ~(1 << BUTTON_BIT);
 
     // Enable pull-up resistor
     BUTTON_PORT |= (1 << BUTTON_BIT);
 
-    // INT0 on falling edge
-    EICRA &= ~(1 << ISC00);
-    EICRA |=  (1 << ISC01);
+    // INT4 on falling edge
+    EICRB &= ~(1 << ISC40);
+    EICRB |=  (1 << ISC41);
 }
 
 void enableSwitchInterrupt(void) {
-    EIMSK |= (1 << INT0);
+    EIMSK |= (1 << INT4);
 }
 
 void disableSwitchInterrupt(void) {
-    EIMSK &= ~(1 << INT0);
+    EIMSK &= ~(1 << INT4);
 }
 
 unsigned char switchPressed(void) {
@@ -27,5 +27,5 @@ unsigned char switchPressed(void) {
 }
 
 void clearSwitchInterruptFlag(void) {
-    EIFR |= (1 << INTF0);
+    EIFR |= (1 << INTF4);
 }
