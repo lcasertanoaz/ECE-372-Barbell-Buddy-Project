@@ -55,7 +55,7 @@ int main(void) {
         // Show tilt using LEDs only
         updateIndicators(tiltAngleDeg, 0);
 
-        // Update rep counter using Y acceleration directly (no math required)
+        // Update rep counter using Y acceleration directly
         yG = getYAccelG();
         
         updateReps(yG);
@@ -70,6 +70,7 @@ int main(void) {
             moveCursor(1, 6);
             writeIntLCD(currentReps);
 
+            // Debugging
             uartPrint("Rep Count: ");
             uartPrintInt(currentReps);
             uartPrint("\r\n");
@@ -77,7 +78,7 @@ int main(void) {
             lastDisplayedRep = currentReps;
         }
 
-        // Optional UART debug every ~500 ms if LOOP_DELAY_MS = 10
+        // UART debug every 500 ms (when LOOP_DELAY_MS = 10)
         debugLoopCounter++;
         if (debugLoopCounter >= 50) {
             uartPrint("Tilt (x10): ");
