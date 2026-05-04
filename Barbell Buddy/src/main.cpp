@@ -6,6 +6,7 @@
 // ------------------------------------------------------------
 
 #include <avr/io.h>
+#include <math.h>
 
 #include "config.h"
 #include "i2c.h"
@@ -18,7 +19,7 @@
 
 int main(void) {
     float tiltAngleDeg;
-    float zG;
+    float xG, zG;
     int currentReps;
     int lastDisplayedRep = -1;
     int debugLoopCounter = 0;
@@ -59,8 +60,13 @@ int main(void) {
         updateIndicators(tiltAngleDeg, 0);
 
         // Update rep counter using Z acceleration
+        xG = getXAccelG();
         zG = getZAccelG();
-        updateReps(zG);
+
+        float thetaRad = tiltAngleDeg * 3.14159265f / 180.0f;
+        float verticalG = xG * sinf(thetaRad) + zG * cosf(thetaRad);
+
+        updateReps(verticalG);
 
         // Read current rep count
         currentReps = getRepCount();

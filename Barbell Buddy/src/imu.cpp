@@ -12,6 +12,8 @@
 
 static float tiltAngleDeg = 0.0f;
 static float accelOffsetDeg = 0.0f;
+static float xAccelG = 0.0f;
+static float zAccelG = 1.0f;
 
 // -------------------------------------------------
 // Private helper functions
@@ -71,6 +73,10 @@ void updateTiltEstimate(void) {
     int16_t xRaw = readWordLittleEndian(REG_DATAX0, REG_DATAX1);
     int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
 
+    // Save raw acceleration in g's for other modules
+    xAccelG = (float)xRaw * 0.0039f;
+    zAccelG = (float)zRaw * 0.0039f;
+
     float rawTiltDeg;
     rawTiltDeg = computeAccelTiltDeg(xRaw, zRaw) - accelOffsetDeg;
 
@@ -82,8 +88,10 @@ float getTiltAngleDeg(void) {
     return tiltAngleDeg;
 }
 
+float getXAccelG(void) {
+    return xAccelG;
+}
+
 float getZAccelG(void) {
-    int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
-    // ADXL345 full resolution mode scale factor is ~3.9mg per LSB
-    return (float)zRaw * 0.0039f;
+    return zAccelG;
 }
