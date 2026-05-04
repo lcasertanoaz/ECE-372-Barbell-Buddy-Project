@@ -19,7 +19,7 @@
 
 int main(void) {
     float tiltAngleDeg;
-    float xG, zG;
+    float yG;
     int currentReps;
     int lastDisplayedRep = -1;
     int debugLoopCounter = 0;
@@ -59,14 +59,10 @@ int main(void) {
         // Show tilt using LEDs only
         updateIndicators(tiltAngleDeg, 0);
 
-        // Update rep counter using Z acceleration
-        xG = getXAccelG();
-        zG = getZAccelG();
-
-        float thetaRad = tiltAngleDeg * 3.14159265f / 180.0f;
-        float verticalG = xG * sinf(thetaRad) + zG * cosf(thetaRad);
-
-        updateReps(verticalG);
+        // Update rep counter using Y acceleration directly (no math required)
+        yG = getYAccelG();
+        
+        updateReps(yG);
 
         // Read current rep count
         currentReps = getRepCount();
@@ -90,8 +86,8 @@ int main(void) {
         if (debugLoopCounter >= 50) {
             uartPrint("Tilt (x10): ");
             uartPrintInt((int)(tiltAngleDeg * 10));
-            uartPrint("  Z-Accel (x100): ");
-            uartPrintInt((int)(zG * 100));
+            uartPrint("  Y-Accel (x100): ");
+            uartPrintInt((int)(yG * 100));
             uartPrint("\r\n");
             debugLoopCounter = 0;
         }

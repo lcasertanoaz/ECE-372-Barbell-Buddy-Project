@@ -6,6 +6,7 @@ void calibrateIMU(void);
 void updateTiltEstimate(void);
 float getTiltAngleDeg(void);
 float getXAccelG(void);
+float getYAccelG(void);
 float getZAccelG(void);
 
 #endif
