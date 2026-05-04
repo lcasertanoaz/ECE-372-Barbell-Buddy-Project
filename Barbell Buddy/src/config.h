@@ -15,7 +15,7 @@
 // MIddle LED -> D23 = PA1
 // Right LED -> D24 = PA2
 // Buzzer    -> D5  = PE3 (optional)
-// Button    -> D2  = PE4 = INT4
+// Button    -> D2  = PE4 = INT4 (optional)
 // -------------------------------------------------
 #define LEFT_LED_DDR    DDRA
 #define LEFT_LED_PORT   PORTA
@@ -58,17 +58,17 @@
 // -------------------------------------------------
 // Timing / debounce
 // -------------------------------------------------
-#define DEBOUNCE_MS           20
-#define LOOP_DELAY_MS         10
-#define CALIBRATION_SAMPLES   200
-#define CALIBRATION_DELAY_MS  5
+#define DEBOUNCE_MS           20            // not used
+#define LOOP_DELAY_MS         10            // Main loop delay in milliseconds
+#define CALIBRATION_SAMPLES   200           // Number of samples to average when calibrating IMU
+#define CALIBRATION_DELAY_MS  5             // Delay between samples when calibrating IMU
 
 // -------------------------------------------------
 // Tilt / warning settings
 // -------------------------------------------------
-#define LEVEL_WINDOW_DEG      40.0f
-#define WARNING_THRESHOLD_DEG 12.0f
-#define WARNING_LOOP_COUNT    10
+#define LEVEL_WINDOW_DEG      40.0f         // Tilt angle in degrees for which the level LED turns on
+#define WARNING_THRESHOLD_DEG 12.0f         // not used
+#define WARNING_LOOP_COUNT    10            // not used
 
 // -------------------------------------------------
 // LCD1602 pin assignments (4-bit mode, ATmega2560)

@@ -56,6 +56,7 @@ void calibrateIMU(void) {
     float angleSum = 0.0f;
     int i;
 
+    // Average multiple samples to reduce noise in the offset calculation
     for (i = 0; i < CALIBRATION_SAMPLES; i++) {
         int16_t xRaw = readWordLittleEndian(REG_DATAX0, REG_DATAX1);
         int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
