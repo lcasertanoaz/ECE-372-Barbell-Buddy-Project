@@ -1,5 +1,6 @@
 #include "timer.h"
 
+// Configures Timer1 for 1ms timing interval
 void initTimer1() {
     // Timer1 in CTC mode
     TCCR1A &= ~(1 << WGM10);
@@ -17,6 +18,7 @@ void initTimer1() {
     OCR1A = 249;
 }
 
+// Delays for specified number of milliseconds using Timer1
 void delayMs(unsigned int delay) {
     unsigned int delayCnt = 0;
 

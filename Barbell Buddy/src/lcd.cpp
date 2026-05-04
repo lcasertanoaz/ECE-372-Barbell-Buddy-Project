@@ -6,10 +6,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 
-/*
- * Small helper for microsecond delays.
- * We keep this local so the LCD file stays simple and self-contained.
- */
+// Delays for specified number of microseconds for LCD timing
 static void lcdDelayUs(unsigned int delay) {
     unsigned int i;
     for (i = 0; i < delay; i++) {
@@ -17,11 +14,7 @@ static void lcdDelayUs(unsigned int delay) {
     }
 }
 
-/*
- * Initializes all LCD-related pins as outputs.
- * LCD is used in 4-bit mode:
- * RS, E, D4, D5, D6, D7
- */
+// Sets all LCD control and data pins as outputs and drives them low
 void initLCDPins(void) {
     LCD_RS_DDR |= (1 << LCD_RS_BIT);
     LCD_E_DDR  |= (1 << LCD_E_BIT);
@@ -38,15 +31,7 @@ void initLCDPins(void) {
     LCD_D7_PORT &= ~(1 << LCD_D7_BIT);
 }
 
-/*
- * Helper function to place the lower 4 bits of "data"
- * onto LCD D4-D7.
- *
- * bit 0 -> D4
- * bit 1 -> D5
- * bit 2 -> D6
- * bit 3 -> D7
- */
+// Places low 4 bits of data on LCD data pins D4-D7
 static void setLCDDataPins(unsigned char data) {
     // Clear current data bits
     LCD_D4_PORT &= ~(1 << LCD_D4_BIT);
@@ -69,12 +54,7 @@ static void setLCDDataPins(unsigned char data) {
     }
 }
 
-/*
- * Sends only 4 bits to the LCD and delays the given number
- * of MICROseconds.
- *
- * This is used during initialization and also by the 8-bit send helpers.
- */
+// Sends a 4-bit command to the LCD with specified delay after execution for timing purposes
 void fourBitCommandWithDelay(unsigned char data, unsigned int delay) {
     setLCDDataPins(data & 0x0F);
 
@@ -90,19 +70,13 @@ void fourBitCommandWithDelay(unsigned char data, unsigned int delay) {
     lcdDelayUs(delay);
 }
 
-/*
- * Sends a full 8-bit command by sending the top part first,
- * then the lower part.
- */
+// Sends an 8-bit command to the LCD by splitting it into two 4-bit parts and sending each part with appropriate timing
 void eightBitCommandWithDelay(unsigned char command, unsigned int delay) {
     fourBitCommandWithDelay(command >> 4, 1);
     fourBitCommandWithDelay(command, delay);
 }
 
-/*
- * Writes one character to the LCD.
- * Same idea as eightBitCommandWithDelay, except RS is high.
- */
+// Writes a single character to the LCD at the current cursor position
 void writeCharacter(unsigned char character) {
     // RS high for data
     LCD_RS_PORT |= (1 << LCD_RS_BIT);
@@ -124,9 +98,7 @@ void writeCharacter(unsigned char character) {
     lcdDelayUs(53);
 }
 
-/*
- * Writes a C-string to the LCD.
- */
+// Writes a null-terminated string to the LCD
 void writeString(const char *str) {
     while (*str != '\0') {
         writeCharacter(*str);
@@ -152,17 +124,12 @@ void moveCursor(unsigned char row, unsigned char col) {
     eightBitCommandWithDelay((0x80 | address), 53);
 }
 
-/*
- * Clears the LCD.
- */
+// Clears the LCD display
 void clearLCD(void) {
     eightBitCommandWithDelay(0x01, 2000);
 }
 
-/*
- * LCD initialization procedure based on the standard HD44780
- * 4-bit mode startup sequence.
- */
+// Initializes LCD using the startup procedure defined in the datasheet
 void initLCDProcedure(void) {
     delayMs(100);
 
@@ -187,17 +154,13 @@ void initLCDProcedure(void) {
     eightBitCommandWithDelay(0x0C, 53);
 }
 
-/*
- * Initializes LCD pins and then runs the LCD startup procedure.
- */
+// Initializes LCD by setting up pins and running startup procedure
 void initLCD(void) {
     initLCDPins();
     initLCDProcedure();
 }
 
-/*
- * Writes an integer to the LCD by converting it to text first.
- */
+// Writes an integer value to the LCD by converting it to a string first
 void writeIntLCD(int value) {
     char buffer[12];
     itoa(value, buffer, 10);

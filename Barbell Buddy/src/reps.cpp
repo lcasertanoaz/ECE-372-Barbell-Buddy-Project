@@ -21,17 +21,19 @@ static int loweringConfirmCount = 0;
 static int liftingConfirmCount = 0;
 static float peakLiftVelocity = 0.0f;
 
+// Resets the rep counter state machine and clears all rep-tracking variables
 void initRepCounter(void) {
-    currentState = REP_IDLE;
-    repCount = 0;
-    filteredZ = 1.0f;
-    velocityProxy = 0.0f;
-    cooldownTimer = 0;
-    loweringConfirmCount = 0;
-    liftingConfirmCount = 0;
-    peakLiftVelocity = 0.0f;
+    currentState = REP_IDLE;    // Current state of the rep counting state machine
+    repCount = 0;               // Total number of reps counted
+    filteredZ = 1.0f;           // Smoothed Z acceleration value to reduce noise
+    velocityProxy = 0.0f;       // Motion estimate used to tell if the bar is moving up or down
+    cooldownTimer = 0;          // Wait time after rep so small bounce doesn't count as new rep
+    loweringConfirmCount = 0;   // Counts how many loops in a row look like lowering phase
+    liftingConfirmCount = 0;    // Counts how many loops in a row look like lifting phase
+    peakLiftVelocity = 0.0f;    // Largest upward motion seen during current rep
 }
 
+// Processes new Z acceleration data to update state machine, counts reps, prints updates over UART
 void updateReps(float zAccelG) {
     // Keep gravity positive even if sensor orientation flips
     float absZ = fabsf(zAccelG);
@@ -45,6 +47,7 @@ void updateReps(float zAccelG) {
     // Simple velocity proxy by integrating net acceleration
     velocityProxy = (velocityProxy + netG) * 0.85f;
 
+    // Cooldown timer to prevent false triggers right after counting a rep
     if (cooldownTimer > 0) {
         cooldownTimer--;
     }

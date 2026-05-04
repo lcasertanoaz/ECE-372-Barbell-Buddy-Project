@@ -6,6 +6,7 @@
 #define BAUD 9600
 #define BRC ((F_CPU/16/BAUD) - 1)
 
+// Initializes UART0 for 9600 baud serial output
 void initUART(void) {
     UBRR0H = (BRC >> 8);
     UBRR0L = BRC;
@@ -13,17 +14,20 @@ void initUART(void) {
     UCSR0C = (1 << UCSZ01) | (1 << UCSZ00); // 8-bit data frame
 }
 
+// Sends 1 byte of data over UART0
 void uartTransmit(unsigned char data) {
     while (!(UCSR0A & (1 << UDRE0))); // Wait for empty transmit buffer
     UDR0 = data;
 }
 
+// Sends a null-terminated string over UART0
 void uartPrint(const char* str) {
     while (*str) {
         uartTransmit(*str++);
     }
 }
 
+// Converts an integer to a string and sends it over UART0
 void uartPrintInt(int val) {
     char buffer[10];
     itoa(val, buffer, 10);
