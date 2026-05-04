@@ -12,7 +12,7 @@
 // ATmega2560 / Mega 2560 pin assignments
 // -------------------------------------------------
 // Left LED  -> D22 = PA0
-// Level LED -> D23 = PA1
+// MIddle LED -> D23 = PA1
 // Right LED -> D24 = PA2
 // Buzzer    -> D5  = PE3 (optional)
 // Button    -> D2  = PE4 = INT4
@@ -76,7 +76,7 @@
 // E  -> PC1  (Mega D36)
 // D4 -> PC2  (Mega D35)
 // D5 -> PC3  (Mega D34)
-// D6 -> PC4  (Mega D33)
+// D6 -> PL0  (Mega D49)
 // D7 -> PC5  (Mega D32)
 // RW is tied directly to GND, so no MCU pin is needed.
 // -------------------------------------------------
@@ -96,9 +96,9 @@
 #define LCD_D5_PORT    PORTC
 #define LCD_D5_BIT     PC3
 
-#define LCD_D6_DDR     DDRC
-#define LCD_D6_PORT    PORTC
-#define LCD_D6_BIT     PC4
+#define LCD_D6_DDR     DDRL
+#define LCD_D6_PORT    PORTL
+#define LCD_D6_BIT     PL0
 
 #define LCD_D7_DDR     DDRC
 #define LCD_D7_PORT    PORTC
