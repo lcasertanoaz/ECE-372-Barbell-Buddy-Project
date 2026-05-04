@@ -30,10 +30,8 @@ static int16_t readWordLittleEndian(uint8_t regLow, uint8_t regHigh) {
     return (int16_t)(((uint16_t)highByte << 8) | lowByte);
 }
 
-static float computeAccelTiltDeg(int16_t yRaw, int16_t zRaw) {
-    // For ADXL345, a simple first-pass tilt estimate is:
-    // roll = atan2(Y, Z)
-    return (float)(atan2((float)yRaw, (float)zRaw) * 180.0 / M_PI);
+static float computeAccelTiltDeg(int16_t xRaw, int16_t zRaw) {
+    return (float)(atan2((float)xRaw, (float)zRaw) * 180.0 / M_PI);
 }
 
 // -------------------------------------------------
@@ -43,11 +41,9 @@ void initIMU(void) {
     // Put ADXL345 into measurement mode
     writeADXLRegister(REG_POWER_CTL, 0x08);
 
-    // Optional but recommended:
     // 100 Hz output data rate
     writeADXLRegister(REG_BW_RATE, 0x0A);
 
-    // Optional but recommended:
     // full-resolution, +/-2g range
     writeADXLRegister(REG_DATA_FORMAT, 0x08);
 
@@ -59,10 +55,10 @@ void calibrateIMU(void) {
     int i;
 
     for (i = 0; i < CALIBRATION_SAMPLES; i++) {
-        int16_t yRaw = readWordLittleEndian(REG_DATAY0, REG_DATAY1);
+        int16_t xRaw = readWordLittleEndian(REG_DATAX0, REG_DATAX1);
         int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
 
-        angleSum += computeAccelTiltDeg(yRaw, zRaw);
+        angleSum += computeAccelTiltDeg(xRaw, zRaw);
 
         delayMs(CALIBRATION_DELAY_MS);
     }
@@ -72,11 +68,11 @@ void calibrateIMU(void) {
 }
 
 void updateTiltEstimate(void) {
-    int16_t yRaw = readWordLittleEndian(REG_DATAY0, REG_DATAY1);
+    int16_t xRaw = readWordLittleEndian(REG_DATAX0, REG_DATAX1);
     int16_t zRaw = readWordLittleEndian(REG_DATAZ0, REG_DATAZ1);
 
     float rawTiltDeg;
-    rawTiltDeg = computeAccelTiltDeg(yRaw, zRaw) - accelOffsetDeg;
+    rawTiltDeg = computeAccelTiltDeg(xRaw, zRaw) - accelOffsetDeg;
 
     // Simple smoothing to reduce flicker
     tiltAngleDeg = 0.85f * tiltAngleDeg + 0.15f * rawTiltDeg;

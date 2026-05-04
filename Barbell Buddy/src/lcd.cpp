@@ -29,6 +29,13 @@ void initLCDPins(void) {
     LCD_D5_DDR |= (1 << LCD_D5_BIT);
     LCD_D6_DDR |= (1 << LCD_D6_BIT);
     LCD_D7_DDR |= (1 << LCD_D7_BIT);
+
+    LCD_RS_PORT &= ~(1 << LCD_RS_BIT);
+    LCD_E_PORT  &= ~(1 << LCD_E_BIT);
+    LCD_D4_PORT &= ~(1 << LCD_D4_BIT);
+    LCD_D5_PORT &= ~(1 << LCD_D5_BIT);
+    LCD_D6_PORT &= ~(1 << LCD_D6_BIT);
+    LCD_D7_PORT &= ~(1 << LCD_D7_BIT);
 }
 
 /*
@@ -76,8 +83,9 @@ void fourBitCommandWithDelay(unsigned char data, unsigned int delay) {
 
     // Pulse Enable
     LCD_E_PORT |= (1 << LCD_E_BIT);
-    lcdDelayUs(1);
+    lcdDelayUs(5);
     LCD_E_PORT &= ~(1 << LCD_E_BIT);
+    lcdDelayUs(5);
 
     lcdDelayUs(delay);
 }
@@ -102,14 +110,16 @@ void writeCharacter(unsigned char character) {
     // Send top 4 bits
     setLCDDataPins((character >> 4) & 0x0F);
     LCD_E_PORT |= (1 << LCD_E_BIT);
-    lcdDelayUs(1);
+    lcdDelayUs(5);
     LCD_E_PORT &= ~(1 << LCD_E_BIT);
+    lcdDelayUs(5);
 
     // Send bottom 4 bits
     setLCDDataPins(character & 0x0F);
     LCD_E_PORT |= (1 << LCD_E_BIT);
-    lcdDelayUs(1);
+    lcdDelayUs(5);
     LCD_E_PORT &= ~(1 << LCD_E_BIT);
+    lcdDelayUs(5);
 
     lcdDelayUs(53);
 }
@@ -154,12 +164,12 @@ void clearLCD(void) {
  * 4-bit mode startup sequence.
  */
 void initLCDProcedure(void) {
-    delayMs(50);
+    delayMs(100);
 
     fourBitCommandWithDelay(0x03, 4100);
-    fourBitCommandWithDelay(0x03, 100);
-    fourBitCommandWithDelay(0x03, 100);
-    fourBitCommandWithDelay(0x02, 100);
+    fourBitCommandWithDelay(0x03, 500);
+    fourBitCommandWithDelay(0x03, 500);
+    fourBitCommandWithDelay(0x02, 500);
 
     // 4-bit mode, 2-line display
     eightBitCommandWithDelay(0x28, 53);

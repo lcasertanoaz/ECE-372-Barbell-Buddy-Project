@@ -1,14 +1,15 @@
 #ifndef LCD_H
 #define LCD_H
 
-#include <stdint.h>
-
+void initLCDPins(void);
+void fourBitCommandWithDelay(unsigned char data, unsigned int delay);
+void eightBitCommandWithDelay(unsigned char command, unsigned int delay);
+void writeCharacter(unsigned char character);
+void writeString(const char *str);
+void moveCursor(unsigned char row, unsigned char col);
+void clearLCD(void);
+void initLCDProcedure(void);
 void initLCD(void);
-void lcdCommand(uint8_t command);
-void lcdData(uint8_t data);
-void lcdClear(void);
-void lcdSetCursor(uint8_t row, uint8_t col);
-void lcdPrint(const char* str);
-void lcdPrintInt(int value);
+void writeIntLCD(int value);
 
 #endif

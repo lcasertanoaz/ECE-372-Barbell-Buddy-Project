@@ -10,9 +10,16 @@ typedef enum {
 
 static RepState currentState = REP_IDLE;
 static int repCount = 0;
-static float filteredZ = 1.0f; 
+
+// Filtered acceleration and simple velocity estimate
+static float filteredZ = 1.0f;
 static float velocityProxy = 0.0f;
+
+// State tracking
 static int cooldownTimer = 0;
+static int loweringConfirmCount = 0;
+static int liftingConfirmCount = 0;
+static float peakLiftVelocity = 0.0f;
 
 void initRepCounter(void) {
     currentState = REP_IDLE;
@@ -20,21 +27,23 @@ void initRepCounter(void) {
     filteredZ = 1.0f;
     velocityProxy = 0.0f;
     cooldownTimer = 0;
+    loweringConfirmCount = 0;
+    liftingConfirmCount = 0;
+    peakLiftVelocity = 0.0f;
 }
 
 void updateReps(float zAccelG) {
-    // Use absolute value so gravity is always positive ~1.0g regardless of sensor flip
-    float absZ = fabs(zAccelG);
+    // Keep gravity positive even if sensor orientation flips
+    float absZ = fabsf(zAccelG);
 
-    // Stronger low-pass filter to smooth out jitter
-    filteredZ = 0.85f * filteredZ + 0.15f * absZ;
+    // Stronger smoothing to reduce jitter
+    filteredZ = 0.90f * filteredZ + 0.10f * absZ;
 
-    // Net acceleration (remove 1G resting gravity)
+    // Remove resting gravity
     float netG = filteredZ - 1.0f;
 
-    // Leaky integrator to estimate velocity. 
-    // Accumulates small sustained accelerations, but decays to 0 to prevent drift.
-    velocityProxy = (velocityProxy + netG) * 0.90f;
+    // Simple velocity proxy by integrating net acceleration
+    velocityProxy = (velocityProxy + netG) * 0.85f;
 
     if (cooldownTimer > 0) {
         cooldownTimer--;
@@ -42,28 +51,52 @@ void updateReps(float zAccelG) {
 
     switch (currentState) {
         case REP_IDLE:
-            // Velocity goes negative as bar starts dropping
-            if (cooldownTimer == 0 && velocityProxy < -0.05f) { 
-                currentState = REP_LOWERING;
+            // Require some negative motion before it's "lowering"
+            if (cooldownTimer == 0 && velocityProxy < -0.10f) {
+                loweringConfirmCount++;
+                if (loweringConfirmCount >= 3) {
+                    currentState = REP_LOWERING;
+                    loweringConfirmCount = 0;
+                    peakLiftVelocity = 0.0f;
+                }
+            } else {
+                loweringConfirmCount = 0;
             }
             break;
 
         case REP_LOWERING:
-            // Velocity goes positive as bar turns around at the bottom and goes up
-            if (velocityProxy > 0.05f) { 
-                currentState = REP_LIFTING;
+            // Require a stronger positive reversal before it's "lifting"
+            if (velocityProxy > 0.10f) {
+                liftingConfirmCount++;
+                if (liftingConfirmCount >= 3) {
+                    currentState = REP_LIFTING;
+                    liftingConfirmCount = 0;
+                }
+            } else {
+                liftingConfirmCount = 0;
             }
             break;
 
         case REP_LIFTING:
-            // Velocity settles back near zero as bar stops at the top
-            if (velocityProxy < 0.02f && velocityProxy > -0.02f) { 
+            // Track how strong the upward phase got
+            if (velocityProxy > peakLiftVelocity) {
+                peakLiftVelocity = velocityProxy;
+            }
+
+            // Only count a rep if:
+            // 1. motion has settled back near zero
+            // 2. the upward phase was actually strong enough
+            if (velocityProxy < 0.02f && velocityProxy > -0.02f &&
+                peakLiftVelocity > 0.15f) {
+
                 repCount++;
                 uartPrint("Rep Completed! Total Reps: ");
                 uartPrintInt(repCount);
                 uartPrint("\r\n");
+
                 currentState = REP_IDLE;
-                cooldownTimer = 50; // ~500ms cooldown to prevent double counting bounce
+                cooldownTimer = 75;   // stricter cooldown
+                peakLiftVelocity = 0.0f;
             }
             break;
     }
