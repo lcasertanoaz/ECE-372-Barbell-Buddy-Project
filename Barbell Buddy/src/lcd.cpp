@@ -47,7 +47,7 @@ static void setLCDDataPins(unsigned char data) {
     LCD_D6_PORT &= ~(1 << LCD_D6_BIT);
     LCD_D7_PORT &= ~(1 << LCD_D7_BIT);
 
-    // Set bits from low nibble of data
+    // Set bits from low part of data
     if (data & 0x01) {
         LCD_D4_PORT |= (1 << LCD_D4_BIT);
     }
@@ -83,8 +83,8 @@ void fourBitCommandWithDelay(unsigned char data, unsigned int delay) {
 }
 
 /*
- * Sends a full 8-bit command by sending the top nibble first,
- * then the lower nibble.
+ * Sends a full 8-bit command by sending the top part first,
+ * then the lower part.
  */
 void eightBitCommandWithDelay(unsigned char command, unsigned int delay) {
     fourBitCommandWithDelay(command >> 4, 1);
