@@ -24,9 +24,7 @@ int main(void) {
     int lastDisplayedRep = -1;
     int debugLoopCounter = 0;
 
-    // -----------------------------
     // Initialization
-    // -----------------------------
     initTimer1();
     initIndicators();
 
@@ -48,9 +46,7 @@ int main(void) {
 
     uartPrint("Barbell Buddy Starting...\r\n");
 
-    // -----------------------------
     // Main loop
-    // -----------------------------
     while (1) {
         // Update IMU values
         updateTiltEstimate();
