@@ -89,18 +89,22 @@ void updateTiltEstimate(void) {
     tiltAngleDeg = 0.85f * tiltAngleDeg + 0.15f * rawTiltDeg;
 }
 
+// Returns the current filtered tilt angle in degrees
 float getTiltAngleDeg(void) {
     return tiltAngleDeg;
 }
 
+// Returns the latest X-axis acceleration in g's
 float getXAccelG(void) {
     return xAccelG;
 }
 
+// Returns the latest Y-axis acceleration in g's
 float getYAccelG(void) {
     return yAccelG;
 }
 
+// Returns the latest Z-axis acceleration in g's
 float getZAccelG(void) {
     return zAccelG;
 }
